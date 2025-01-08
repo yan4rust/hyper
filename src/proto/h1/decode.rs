@@ -140,7 +140,7 @@ impl Decoder {
                 | Eof(true)
         )
     }
-
+    //@note read body as Frame
     pub(crate) fn decode<R: MemRead>(
         &mut self,
         cx: &mut Context<'_>,
@@ -153,6 +153,7 @@ impl Decoder {
                     Poll::Ready(Ok(Frame::data(Bytes::new())))
                 } else {
                     let to_read = *remaining as usize;
+                    //@note lengthed body read
                     let buf = ready!(body.read_mem(cx, to_read))?;
                     let num = buf.as_ref().len() as u64;
                     if num > *remaining {
@@ -179,6 +180,7 @@ impl Decoder {
             } => {
                 let h1_max_headers = h1_max_headers.unwrap_or(DEFAULT_MAX_HEADERS);
                 let h1_max_header_size = h1_max_header_size.unwrap_or(TRAILER_LIMIT);
+                //@note loop until ChunkState::End
                 loop {
                     let mut buf = None;
                     // advances the chunked state
@@ -290,11 +292,11 @@ macro_rules! put_u8 {
         }
     };
 }
-
 impl ChunkedState {
     fn new() -> ChunkedState {
         ChunkedState::Start
     }
+    ///@note chunked body read ,read one char one step
     fn step<R: MemRead>(
         &self,
         cx: &mut Context<'_>,
@@ -340,6 +342,7 @@ impl ChunkedState {
         trace!("Read chunk start");
 
         let radix = 16;
+        //@note decode hex digits char,a=10,b=11 etc
         match byte!(rdr, cx) {
             b @ b'0'..=b'9' => {
                 *size = or_overflow!(size.checked_mul(radix));

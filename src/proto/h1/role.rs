@@ -134,6 +134,7 @@ impl Http1Transaction for Server {
     #[cfg(feature = "tracing")]
     const LOG: &'static str = "{role=server}";
 
+    //@note server parse request
     fn parse(buf: &mut BytesMut, ctx: ParseContext<'_>) -> ParseResult<RequestLine> {
         debug_assert!(!buf.is_empty(), "parse called with empty buf");
 
@@ -997,6 +998,7 @@ impl Http1Transaction for Client {
     #[cfg(feature = "tracing")]
     const LOG: &'static str = "{role=client}";
 
+    //@note client parse response
     fn parse(buf: &mut BytesMut, ctx: ParseContext<'_>) -> ParseResult<StatusCode> {
         debug_assert!(!buf.is_empty(), "parse called with empty buf");
 

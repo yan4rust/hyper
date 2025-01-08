@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.cargo.features": [
+        "full" 
+    ],
+    "rust-analyzer.checkOnSave": false
+}

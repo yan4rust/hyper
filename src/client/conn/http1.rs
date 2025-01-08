@@ -188,6 +188,7 @@ where
     ///
     /// This is however not enforced or validated and it is up to the user
     /// of this method to ensure the `Uri` is correct for their intended purpose.
+    //@note send_request method
     pub fn send_request(
         &mut self,
         req: Request<B>,

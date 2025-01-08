@@ -167,6 +167,7 @@ where
         }
     }
 
+    //@note Buffered.parse, read bytes as header andparse loop
     pub(super) fn parse<S>(
         &mut self,
         cx: &mut Context<'_>,
@@ -220,6 +221,7 @@ where
         }
     }
 
+    //@note Buffered.poll_read_from_io , read bytes from io
     pub(crate) fn poll_read_from_io(&mut self, cx: &mut Context<'_>) -> Poll<io::Result<usize>> {
         self.read_blocked = false;
         let next = self.read_buf_strategy.next();
@@ -342,6 +344,8 @@ where
     T: Read + Write + Unpin,
     B: Buf,
 {
+    ///@note Buffered read_mem, return at most len bytes
+    /// if buffer has some data,read from buffer first,otherwise read from io
     fn read_mem(&mut self, cx: &mut Context<'_>, len: usize) -> Poll<io::Result<Bytes>> {
         if !self.read_buf.is_empty() {
             let n = std::cmp::min(len, self.read_buf.len());
@@ -353,6 +357,7 @@ where
     }
 }
 
+//@note ReadStrategy , read how much bytes next turn
 #[derive(Clone, Copy, Debug)]
 enum ReadStrategy {
     Adaptive {

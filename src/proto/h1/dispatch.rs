@@ -162,6 +162,7 @@ where
         }
     }
 
+    //@note client dispatcher poll_loop
     fn poll_loop(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
         // Limit the looping on this connection, in case it is ready far too
         // often, so that other futures don't starve.
@@ -193,6 +194,7 @@ where
     }
 
     fn poll_read(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
+        //@note body: read header and whole body in loop
         loop {
             if self.is_closing {
                 return Poll::Ready(Ok(()));
@@ -216,6 +218,7 @@ where
                     }
                     match self.conn.poll_read_body(cx) {
                         Poll::Ready(Some(Ok(frame))) => {
+                            //@note body2: read and send one body frame (data or trailer)
                             if frame.is_data() {
                                 let chunk = frame.into_data().unwrap_or_else(|_| unreachable!());
                                 match body.try_send_data(chunk) {
@@ -286,6 +289,7 @@ where
                     DecodedLength::ZERO => IncomingBody::empty(),
                     other => {
                         let (tx, rx) =
+                            //@note body1: header read complete,create body
                             IncomingBody::new_channel(other, wants.contains(Wants::EXPECT));
                         self.body_tx = Some(tx);
                         rx
