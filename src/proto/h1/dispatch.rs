@@ -194,7 +194,7 @@ where
     }
 
     fn poll_read(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
-        //@note body: read header and whole body in loop
+        //@note response body: read header and whole body in loop
         loop {
             if self.is_closing {
                 return Poll::Ready(Ok(()));
@@ -218,7 +218,7 @@ where
                     }
                     match self.conn.poll_read_body(cx) {
                         Poll::Ready(Some(Ok(frame))) => {
-                            //@note body2: read and send one body frame (data or trailer)
+                            //@note response body: read and send one body frame (data or trailer)
                             if frame.is_data() {
                                 let chunk = frame.into_data().unwrap_or_else(|_| unreachable!());
                                 match body.try_send_data(chunk) {
@@ -289,7 +289,7 @@ where
                     DecodedLength::ZERO => IncomingBody::empty(),
                     other => {
                         let (tx, rx) =
-                            //@note body1: header read complete,create body
+                            //@note response body: header read complete,create body
                             IncomingBody::new_channel(other, wants.contains(Wants::EXPECT));
                         self.body_tx = Some(tx);
                         rx
@@ -337,6 +337,7 @@ where
                 && self.conn.can_write_head()
                 && self.dispatch.should_poll()
             {
+                //@note send_request: poll message from channel
                 if let Some(msg) = ready!(Pin::new(&mut self.dispatch).poll_msg(cx)) {
                     let (head, body) = msg.map_err(crate::Error::new_user_service)?;
 
@@ -352,6 +353,7 @@ where
                         self.body_rx.set(Some(body));
                         btype
                     };
+                    //@note send_request: write head
                     self.conn.write_head(head, body_type);
                 } else {
                     self.close();
@@ -360,6 +362,7 @@ where
             } else if !self.conn.can_buffer_body() {
                 ready!(self.poll_flush(cx))?;
             } else {
+                //@note send_request: write body branch
                 // A new scope is needed :(
                 if let (Some(mut body), clear_body) =
                     OptGuard::new(self.body_rx.as_mut()).guard_mut()
@@ -374,6 +377,7 @@ where
                         continue;
                     }
 
+                    //@note send_request: poll request body frame
                     let item = ready!(body.as_mut().poll_frame(cx));
                     if let Some(item) = item {
                         let frame = item.map_err(|e| {
@@ -397,6 +401,7 @@ where
                                     trace!("discarding empty chunk");
                                     continue;
                                 }
+                                //@note send_request: write body frame
                                 self.conn.write_body(chunk);
                             }
                         } else if frame.is_trailers() {

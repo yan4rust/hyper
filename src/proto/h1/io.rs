@@ -167,7 +167,7 @@ where
         }
     }
 
-    //@note Buffered.parse, read bytes as header andparse loop
+    //@note Buffered.parse, read bytes as header and parse loop
     pub(super) fn parse<S>(
         &mut self,
         cx: &mut Context<'_>,
@@ -540,6 +540,7 @@ where
         self.strategy = strategy;
     }
 
+    /// @note WriteStrategy buffer branch,flattern or queue
     pub(super) fn buffer<BB: Buf + Into<B>>(&mut self, mut buf: BB) {
         debug_assert!(buf.has_remaining());
         match self.strategy {
