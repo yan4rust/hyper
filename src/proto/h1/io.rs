@@ -578,6 +578,7 @@ where
         }
     }
 
+    ///@note check if  can buffer write data
     fn can_buffer(&self) -> bool {
         match self.strategy {
             WriteStrategy::Flatten => self.remaining() < self.max_buf_size,

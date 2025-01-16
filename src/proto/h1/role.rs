@@ -1170,7 +1170,7 @@ impl Http1Transaction for Client {
         }
     }
 
-    ///@note Client.encode serialize request header into bytes
+    ///@note Client.encode serialize request header into write buffer
     fn encode(msg: Encode<'_, Self::Outgoing>, dst: &mut Vec<u8>) -> crate::Result<Encoder> {
         trace!(
             "Client::encode method={:?}, body={:?}",
